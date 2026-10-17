@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Local environment (secrets: OPENAI_API_KEY, STRIPE_TEST_KEY)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+.bg.log
+
+# Caches
+.npm/
+.cache/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/

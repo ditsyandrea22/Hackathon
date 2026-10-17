@@ -1,0 +1,20 @@
+{
+  "name": "ship-it",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "One sentence in, a working Stripe-enabled app out. Built inside a CreateOS sandbox.",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "start": "node --env-file=.env src/server.js",
+    "dev": "SANDBOX=local node --env-file=.env src/server.js",
+    "test": "node test/policy.test.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "git": "^0.1.5",
+    "openai": "latest"
+  }
+}

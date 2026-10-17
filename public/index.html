@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ship It</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #e6ecee;
+  --panel: #f5f8f8;
+  --ink: #12202a;
+  --muted: #4d6270;
+  --line: #b5c3c8;
+  --teal: #0e6b66;
+  --teal-ink: #ffffff;
+  --signal: #b8321b;
+  --signal-bg: #f8e3de;
+  --ok-bg: #dcefec;
+  --sans: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0f171c;
+    --panel: #172229;
+    --ink: #e4edf0;
+    --muted: #93a8b3;
+    --line: #2b3b44;
+    --teal: #4fc2b8;
+    --teal-ink: #082421;
+    --signal: #ff8a73;
+    --signal-bg: #3a1d18;
+    --ok-bg: #123530;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 16px/1.5 var(--sans);
+  padding: 32px clamp(16px, 4vw, 48px) 64px;
+}
+header { max-width: 1200px; margin: 0 auto 28px; }
+h1 { font-size: clamp(40px, 7vw, 76px); line-height: 1; margin: 0 0 12px; font-weight: 700; letter-spacing: -0.02em; }
+header p { margin: 0; max-width: 56ch; color: var(--muted); font-size: 18px; }
+header .credit { margin-top: 12px; font-size: 14px; }
+header .credit a, footer a { color: var(--teal); font-weight: 700; }
+footer {
+  max-width: 1200px; margin: 32px auto 0; padding-top: 16px;
+  border-top: 1px solid var(--line); color: var(--muted); font-size: 14px;
+}
+footer p { margin: 0 0 4px; }
+main { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+@media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 20px; }
+h2 { font-size: 18px; margin: 0 0 12px; font-weight: 700; }
+textarea {
+  width: 100%; min-height: 96px; resize: vertical; padding: 12px; font: inherit;
+  color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+}
+:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+button {
+  font: 700 15px var(--sans); border-radius: 8px; border: 1px solid var(--ink);
+  padding: 10px 16px; cursor: pointer; background: transparent; color: var(--ink);
+}
+button.primary { background: var(--teal); border-color: var(--teal); color: var(--teal-ink); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.chip { font-weight: 400; font-size: 14px; border-color: var(--line); padding: 6px 10px; }
+.chip:hover { border-color: var(--ink); }
+.badge { font: 500 13px var(--mono); color: var(--muted); margin-left: auto; }
+
+#log { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
+#log li { border-left: 3px solid var(--line); padding: 2px 0 2px 12px; }
+#log li.say { border-color: var(--teal); }
+#log li.tool { font: 500 13px/1.5 var(--mono); }
+#log li.err { border-color: var(--signal); color: var(--signal); }
+#log details { font: 400 12px/1.5 var(--mono); color: var(--muted); margin-top: 4px; }
+#log pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow: auto; }
+.empty { color: var(--muted); margin: 16px 0 0; }
+
+iframe { width: 100%; height: 360px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.preview-empty { display: grid; place-items: center; height: 360px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); text-align: center; padding: 16px; }
+#openLink { display: inline-block; margin-top: 10px; color: var(--teal); font-weight: 700; }
+
+.rules { margin: 0 0 16px; padding-left: 18px; color: var(--muted); }
+#ledger { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+#ledger li { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+#ledger li.blocked { background: var(--signal-bg); border-color: var(--signal); }
+#ledger li.allowed { background: var(--ok-bg); border-color: var(--teal); }
+#ledger code { display: block; font: 500 12px/1.5 var(--mono); margin-top: 4px; word-break: break-all; }
+#ledger .actions { display: flex; gap: 8px; margin-top: 8px; }
+
+/* ---------- Tactical build HUD ---------- */
+.kicker { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; font: 600 11px/1 var(--mono); letter-spacing: 0.18em; color: var(--muted); }
+.kicker .led { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 22%, transparent); animation: ledPulse 2.4s ease-in-out infinite; }
+@keyframes ledPulse { 50% { opacity: 0.35; } }
+h2 .idx { margin-right: 8px; font: 600 11px var(--mono); letter-spacing: 0.14em; color: var(--muted); }
+
+button.primary { position: relative; overflow: hidden; }
+button.primary::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-130%);
+  background: linear-gradient(100deg, transparent 25%, rgba(255,255,255,0.32) 50%, transparent 75%);
+  transition: transform 0.55s ease;
+}
+button.primary:hover::after { transform: translateX(130%); }
+.chip { transition: border-color 0.15s ease, transform 0.15s ease; }
+.chip:hover { transform: translateY(-1px); }
+
+.stage { position: relative; min-width: 0; }
+.stage.active { cursor: crosshair; }
+
+.scope {
+  --hud: #8bf7e8;
+  --hud-soft: rgba(139, 247, 232, 0.4);
+  --hud-dim: rgba(139, 247, 232, 0.14);
+  position: absolute; inset: 0; z-index: 5; display: none; place-items: center;
+  overflow: hidden; border: 1px solid #1d3d43; border-radius: 8px;
+  color: var(--hud); pointer-events: none;
+  background: radial-gradient(circle at 50% 46%, rgba(8, 42, 46, 0.94) 0%, rgba(3, 20, 23, 0.97) 45%, #010b0d 100%);
+}
+.scope.active { display: grid; animation: scopeIn 0.22s ease-out; }
+.scope::before {
+  content: ""; position: absolute; inset: 0; z-index: 1; opacity: 0.5;
+  background: repeating-linear-gradient(0deg, rgba(139, 247, 232, 0.05) 0 1px, transparent 1px 4px);
+}
+.scope::after { content: ""; position: absolute; inset: 0; z-index: 1; box-shadow: inset 0 0 110px 28px rgba(0, 0, 0, 0.72); }
+.scope-grid {
+  position: absolute; inset: 0; z-index: 0; opacity: 0.35;
+  background-image: linear-gradient(var(--hud-dim) 1px, transparent 1px), linear-gradient(90deg, var(--hud-dim) 1px, transparent 1px);
+  background-size: 40px 40px;
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 0%, transparent 70%);
+  mask-image: radial-gradient(circle at 50% 46%, #000 0%, transparent 70%);
+}
+.hair { position: absolute; z-index: 2; background: rgba(139, 247, 232, 0.15); }
+.hair-h { left: 0; right: 0; top: 50%; height: 1px; }
+.hair-v { top: 0; bottom: 0; left: 50%; width: 1px; }
+.telemetry { position: absolute; z-index: 3; font: 600 9px/1 var(--mono); letter-spacing: 0.16em; color: rgba(139, 247, 232, 0.55); }
+.telemetry.tl { top: 12px; left: 14px; }
+.telemetry.tr { top: 12px; right: 14px; }
+.telemetry.bl { bottom: 12px; left: 14px; }
+.telemetry.br { bottom: 12px; right: 14px; }
+
+.scope-inner { position: relative; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 16px; }
+.reticle { position: relative; width: min(46vw, 190px); aspect-ratio: 1; display: grid; place-items: center; }
+.reticle::before, .reticle::after { content: ""; position: absolute; background: var(--hud-soft); }
+.reticle::before { top: -26%; bottom: -26%; left: 50%; width: 1px; }
+.reticle::after { left: -26%; right: -26%; top: 50%; height: 1px; }
+.ring { position: absolute; border-radius: 50%; }
+.ring-1 { inset: 0; border: 1px solid var(--hud-soft); }
+.ring-2 { inset: 16%; border: 1px dashed rgba(139, 247, 232, 0.5); animation: spin 10s linear infinite; }
+.ring-3 {
+  inset: -8%;
+  background: repeating-conic-gradient(from 0deg, rgba(139, 247, 232, 0.5) 0deg 0.8deg, transparent 0.8deg 9deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px));
+  animation: spin 30s linear infinite reverse;
+}
+.sweep {
+  position: absolute; inset: 4%; border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(139, 247, 232, 0.4), transparent 26%);
+  -webkit-mask: radial-gradient(farthest-side, transparent 58%, #000 59%);
+  mask: radial-gradient(farthest-side, transparent 58%, #000 59%);
+  animation: spin 2.8s linear infinite;
+}
+.dot { width: 5px; height: 5px; border-radius: 50%; background: var(--hud); box-shadow: 0 0 10px var(--hud); animation: ledPulse 1.2s ease-in-out infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes scopeIn { from { opacity: 0; } }
+
+.hud { display: grid; gap: 7px; justify-items: center; text-align: center; }
+.hud-tag { font: 600 9px/1 var(--mono); letter-spacing: 0.3em; color: rgba(139, 247, 232, 0.6); }
+#scopeStatus { font: 700 clamp(18px, 2.4vw, 22px)/1 var(--mono); letter-spacing: 0.2em; text-shadow: 0 0 18px rgba(139, 247, 232, 0.45); }
+.hud-step { font: 500 11px/1 var(--mono); letter-spacing: 0.16em; color: rgba(139, 247, 232, 0.78); }
+.hud-bar { width: min(240px, 56vw); height: 3px; margin-top: 2px; background: rgba(139, 247, 232, 0.16); border-radius: 2px; overflow: hidden; }
+#scopeFill { display: block; width: 0; height: 100%; background: var(--hud); box-shadow: 0 0 12px var(--hud); transition: width 0.45s cubic-bezier(0.3, 0.7, 0.3, 1); }
+
+.scope.locked { border-color: rgba(139, 247, 232, 0.7); }
+.scope.locked #scopeStatus { color: #c8fff4; animation: lockFlash 0.28s steps(2, end) 4; }
+.scope.lost { border-color: rgba(255, 138, 115, 0.7); }
+.scope.lost #scopeStatus { color: #ff8a73; }
+.scope.lost .reticle { animation: shake 0.28s linear 3; }
+@keyframes lockFlash { 50% { opacity: 0.35; } }
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+@media (prefers-reduced-motion: no-preference) {
+  #ledger li { animation: drop 160ms ease-out; }
+  @keyframes drop { from { transform: translateY(-4px); opacity: 0; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scope *, .scope *::before, .scope *::after,
+  .kicker .led, button.primary::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker"><span class="led" aria-hidden="true"></span> HACKATHON BUILD // AGENT ONLINE</p>
+  <h1>Ship it.</h1>
+  <p>Describe an app in one sentence. An agent builds it in an isolated sandbox, adds Stripe test payments, and hands you a live link.</p>
+  <p class="credit">A hackathon project by Ditsy Andrea — <a href="https://x.com/Crypto_ditsy" target="_blank" rel="noopener">@Crypto_ditsy on X</a></p>
+</header>
+
+<main>
+  <section aria-labelledby="build-h">
+    <h2 id="build-h"><span class="idx">01</span>What should it build?</h2>
+    <textarea id="prompt" aria-label="App description" placeholder="A booking page for my barbershop with a $10 deposit"></textarea>
+    <div class="row">
+      <button id="go" class="primary">Build my app</button>
+      <button class="chip" data-ex="A donation page for a community garden with $5, $10 and $25 buttons">Donation page</button>
+      <button class="chip" data-ex="A one-product store selling a $18 ceramic mug">Mug store</button>
+      <button class="chip" data-ex="A booking page for a barbershop with a $10 deposit">Barbershop deposit</button>
+      <span class="badge" id="env"></span>
+    </div>
+    <p class="empty" id="logEmpty">The agent's steps will show up here.</p>
+    <ol id="log" aria-live="polite"></ol>
+  </section>
+
+  <div style="display:grid; gap:24px; align-content:start; min-width:0">
+    <section aria-labelledby="prev-h">
+      <h2 id="prev-h"><span class="idx">02</span>Your app</h2>
+      <div class="stage" id="stage">
+        <div id="previewBox" class="preview-empty">Nothing yet. Your live app appears here when the agent finishes.</div>
+        <a id="openLink" href="#" target="_blank" rel="noopener" hidden>Open in a new tab</a>
+        <div class="scope" id="scope" aria-hidden="true">
+          <span class="scope-grid"></span>
+          <span class="hair hair-h"></span>
+          <span class="hair hair-v"></span>
+          <span class="telemetry tl">MODE &middot; BUILD</span>
+          <span class="telemetry tr">AGENT &middot; ONLINE</span>
+          <span class="telemetry bl" id="scopeSandbox">SANDBOX &middot; LOCAL</span>
+          <span class="telemetry br" id="scopeAction">LOCK &middot; SEARCHING</span>
+          <div class="scope-inner">
+            <div class="reticle">
+              <span class="ring ring-1"></span>
+              <span class="ring ring-2"></span>
+              <span class="ring ring-3"></span>
+              <span class="sweep"></span>
+              <span class="dot"></span>
+            </div>
+            <div class="hud">
+              <span class="hud-tag">TARGET ACQUISITION</span>
+              <strong id="scopeStatus">STANDBY</strong>
+              <span class="hud-step" id="scopeStep">STEP 00 / 25</span>
+              <div class="hud-bar"><i id="scopeFill"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="guard-h">
+      <h2 id="guard-h"><span class="idx">03</span>What the sandbox stopped</h2>
+      <ul class="rules">
+        <li>Stripe test keys only. Live keys are rejected.</li>
+        <li>The agent's code runs in the sandbox, never on this server.</li>
+        <li>Risky commands pause here until you allow or deny them.</li>
+        <li id="stepRule"></li>
+      </ul>
+      <ul id="ledger"><li class="empty" style="border:none;padding:0;color:var(--muted)">No blocked actions yet.</li></ul>
+    </section>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const log = $('log'), ledger = $('ledger'), scope = $('scope'), stage = $('stage');
+let source = null, maxSteps = 25, scopeTimer = null;
+
+fetch('/api/config').then((r) => r.json()).then((c) => {
+  maxSteps = c.maxSteps;
+  $('env').textContent = c.sandbox;
+  $('stepRule').textContent = `The agent stops after ${c.maxSteps} steps.`;
+  $('scopeSandbox').textContent = 'SANDBOX · ' + (c.sandbox.startsWith('Local') ? 'LOCAL' : 'CREATEOS');
+  $('scopeStep').textContent = `STEP 00 / ${maxSteps}`;
+  if (!c.stripeReady) addLog('err', 'Set STRIPE_TEST_KEY to a Stripe test key in .env before building.');
+});
+
+document.querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => { $('prompt').value = b.dataset.ex; $('prompt').focus(); }));
+$('go').addEventListener('click', start);
+$('prompt').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) start(); });
+
+function addLog(cls, text) {
+  $('logEmpty').hidden = true;
+  const li = document.createElement('li');
+  li.className = cls;
+  li.textContent = text;
+  log.appendChild(li);
+  li.scrollIntoView({ block: 'nearest' });
+  return li;
+}
+
+function addLedger(cls, title, command) {
+  if (ledger.querySelector('.empty')) ledger.innerHTML = '';
+  const li = document.createElement('li');
+  li.className = cls;
+  const t = document.createElement('strong'); t.textContent = title;
+  const c = document.createElement('code'); c.textContent = command;
+  li.append(t, c);
+  ledger.prepend(li);
+  return li;
+}
+
+function start() {
+  const prompt = $('prompt').value.trim();
+  if (!prompt) { $('prompt').focus(); return; }
+  if (source) source.close();
+  log.innerHTML = ''; $('logEmpty').hidden = true;
+  ledger.innerHTML = '<li class="empty" style="border:none;padding:0;color:var(--muted)">No blocked actions yet.</li>';
+  const fresh = document.createElement('div');
+  fresh.id = 'previewBox'; fresh.className = 'preview-empty';
+  fresh.textContent = 'Building. This usually takes a few minutes.';
+  $('previewBox').replaceWith(fresh);
+  $('openLink').hidden = true;
+  $('go').disabled = true;
+
+  if (scopeTimer) clearTimeout(scopeTimer);
+  scope.classList.remove('locked', 'lost');
+  scope.classList.add('active');
+  stage.classList.add('active');
+  $('scopeStatus').textContent = 'ACQUIRING';
+  $('scopeStep').textContent = `STEP 00 / ${maxSteps}`;
+  $('scopeFill').style.width = '0%';
+  $('scopeAction').textContent = 'LOCK · SEARCHING';
+
+  source = new EventSource('/api/run?prompt=' + encodeURIComponent(prompt));
+  const on = (type, fn) => source.addEventListener(type, (e) => fn(JSON.parse(e.data)));
+  let lastTool = null;
+
+  on('sandbox', () => {
+    $('scopeStatus').textContent = 'SANDBOX ONLINE';
+    addLog('say', 'Sandbox ready.');
+  });
+  on('step', (d) => {
+    $('scopeStep').textContent = `STEP ${String(d.step).padStart(2, '0')} / ${d.max}`;
+    $('scopeFill').style.width = Math.round((d.step / d.max) * 100) + '%';
+  });
+  on('say', (d) => addLog('say', d.text));
+  on('tool', (d) => {
+    $('scopeAction').textContent = 'LOCK · ' + d.name.toUpperCase();
+    const summary = d.name === 'write_file' ? d.input.path
+      : d.name === 'run_command' ? (d.input.background ? '(background) ' : '') + d.input.command
+      : d.name === 'get_public_url' ? 'port ' + d.input.port : '';
+    lastTool = addLog('tool', `${d.name} ${summary}`.trim());
+  });
+  on('result', (d) => {
+    if (!lastTool || !d.text) return;
+    const det = document.createElement('details');
+    const sum = document.createElement('summary'); sum.textContent = d.isError ? 'Error output' : 'Output';
+    const pre = document.createElement('pre'); pre.textContent = d.text;
+    det.append(sum, pre);
+    if (d.isError) det.open = true;
+    lastTool.appendChild(det);
+  });
+  on('blocked', (d) => {
+    // "needs approval" items get their buttons from the approval event below
+    if (!d.reason.startsWith('needs approval')) addLedger('blocked', 'Blocked: ' + d.reason, d.command);
+  });
+  on('approval', (d) => {
+    const li = addLedger('blocked', 'Needs your approval: ' + d.reason, d.command);
+    const box = document.createElement('div'); box.className = 'actions';
+    const send = (approved) => {
+      fetch('/api/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: d.id, approved }) });
+      box.remove();
+      li.className = approved ? 'allowed' : 'blocked';
+      li.querySelector('strong').textContent = approved ? 'Allowed by you' : 'Denied by you';
+    };
+    const allow = document.createElement('button'); allow.textContent = 'Allow'; allow.className = 'primary'; allow.onclick = () => send(true);
+    const deny = document.createElement('button'); deny.textContent = 'Deny'; deny.onclick = () => send(false);
+    box.append(allow, deny); li.appendChild(box);
+  });
+  on('done', (d) => {
+    addLog('say', d.summary);
+    const box = $('previewBox');
+    const frame = document.createElement('iframe');
+    frame.src = d.url; frame.title = 'Your generated app';
+    box.replaceWith(frame); frame.id = 'previewBox';
+    $('openLink').href = d.url; $('openLink').hidden = false;
+    lockScope('TARGET ACQUIRED', true);
+    finish();
+  });
+  on('failure', (d) => { addLog('err', d.message); lockScope('TARGET LOST', false); finish(); });
+  source.onerror = () => {
+    if (source.readyState !== EventSource.CLOSED) return;
+    if (scope.classList.contains('active') && !scope.classList.contains('locked') && !scope.classList.contains('lost')) {
+      lockScope('TARGET LOST', false);
+    }
+    finish();
+  };
+
+  function finish() { source.close(); $('go').disabled = false; }
+}
+
+function lockScope(status, ok) {
+  if (scopeTimer) clearTimeout(scopeTimer);
+  scope.classList.remove('locked', 'lost');
+  scope.classList.add(ok ? 'locked' : 'lost');
+  $('scopeStatus').textContent = status;
+  $('scopeAction').textContent = ok ? 'LOCK · CONFIRMED' : 'LOCK · FAILED';
+  if (ok) $('scopeFill').style.width = '100%';
+  scopeTimer = setTimeout(() => {
+    scope.classList.remove('active', 'locked', 'lost');
+    stage.classList.remove('active');
+  }, ok ? 1300 : 1100);
+}
+</script>
+<footer>
+  <p><strong>About:</strong> Ship It is a hackathon project — one sentence in, a working Stripe-enabled app out, built inside a sandbox so generated code never touches this server.</p>
+  <p>Builder: Ditsy Andrea · <a href="https://x.com/Crypto_ditsy" target="_blank" rel="noopener">x.com/Crypto_ditsy</a></p>
+</footer>
+</body>
+</html>
